@@ -1,6 +1,6 @@
 # AI Resume Studio - Full-Stack Web Platform
 
-A full-stack, multi-agent AI platform built with **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **Alembic**, **Jinja2**, and **Chart.js**. It automates resume analysis, ATS compliance scoring, job matching, side-by-side editing, and multi-format document exporting (DOCX, PDF, Markdown, TXT) powered by **Google Gemini **.
+A full-stack, multi-agent AI platform built with **FastAPI**, **PostgreSQL**, **SQLAlchemy**, **Alembic**, **Jinja2**, and **Chart.js**. It automates resume analysis, ATS compliance scoring, job matching, side-by-side editing, and multi-format document exporting (DOCX, PDF, Markdown, TXT) powered by **Google Gemini**.
 
 ---
 
