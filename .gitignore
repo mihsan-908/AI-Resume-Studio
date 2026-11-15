@@ -1,0 +1,84 @@
+# =========================
+# Python
+# =========================
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# =========================
+# Environment Variables
+# =========================
+
+.env
+.env.local
+.env.*.local
+
+# =========================
+# Generated Reports & Databases
+# =========================
+
+data/*.json
+data/*.db
+*.db
+*.sqlite
+*.sqlite3
+output/*
+
+# Keep folder structure
+!data/.gitkeep
+!output/.gitkeep
+
+# =========================
+# Uploaded Files
+# =========================
+
+uploads/resumes/*
+uploads/job_descriptions/*
+
+# Keep upload folders
+!uploads/resumes/.gitkeep
+!uploads/job_descriptions/.gitkeep
+
+# =========================
+# Logs
+# =========================
+
+logs/
+*.log
+
+# =========================
+# IDE / Editor
+# =========================
+
+.vscode/
+.idea/
+
+# =========================
+# OS Files
+# =========================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Python Tools
+# =========================
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# =========================
+# Jupyter
+# =========================
+
+.ipynb_checkpoints/

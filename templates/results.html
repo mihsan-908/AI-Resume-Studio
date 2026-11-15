@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Results #{{ analysis.id }} - Resume Analyzer AI{% endblock %}
+{% block page_title %}Analysis Results #{{ analysis.id }}{% endblock %}
+{% block page_subtitle %}Comprehensive ATS compatibility score, skill gaps, and recommendations{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/results.css">
+{% endblock %}
+
+{% block content %}
+<!-- Results Action Header -->
+<div class="results-action-bar">
+    <div class="resume-info">
+        <h3>📄 {{ analysis.resume.original_filename }}</h3>
+        <p>Analyzed on {{ analysis.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+    </div>
+    <div class="action-buttons">
+        <a href="/resume-builder/{{ analysis.id }}" class="btn primary-btn">✨ Open Resume Builder</a>
+        <div class="dropdown">
+            <button class="btn btn-secondary">📥 Download Export</button>
+            <div class="dropdown-content">
+                <a href="/api/analyses/{{ analysis.id }}/export/docx">Word Document (.docx)</a>
+                <a href="/api/analyses/{{ analysis.id }}/export/pdf">PDF Document (.pdf)</a>
+                <a href="/api/analyses/{{ analysis.id }}/export/md">Markdown (.md)</a>
+                <a href="/api/analyses/{{ analysis.id }}/export/txt">Plain Text (.txt)</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Score Cards & Gauges Grid -->
+<div class="scores-grid">
+    <!-- ATS Score Gauge -->
+    <div class="card score-gauge-card">
+        <h4>ATS Compatibility Score</h4>
+        <div class="gauge-box">
+            <canvas id="atsGaugeChart" width="200" height="200"></canvas>
+            <div class="gauge-score-value">{{ analysis.ats_score }}</div>
+        </div>
+        <p class="score-disclaimer">Estimates screening compliance against standard ATS parsers.</p>
+    </div>
+
+    <!-- Job Match Gauge (if present) -->
+    <div class="card score-gauge-card">
+        <h4>Job Description Match</h4>
+        {% if analysis.job_match_score %}
+        <div class="gauge-box">
+            <canvas id="matchGaugeChart" width="200" height="200"></canvas>
+            <div class="gauge-score-value">{{ analysis.job_match_score }}%</div>
+        </div>
+        <p class="score-disclaimer">{{ job_match_report.get('overall_match', 'Job match completed.') }}</p>
+        {% else %}
+        <div class="no-job-match">
+            <span class="icon">💼</span>
+            <p>No job description was provided during this analysis run.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="card stats-summary-card">
+        <h4>Analysis Metrics</h4>
+        <div class="stat-item">
+            <span>Overall Quality Grade</span>
+            <strong class="quality-tag">{{ analysis.resume_quality }}</strong>
+        </div>
+        <div class="stat-item">
+            <span>Identified Skills</span>
+            <strong>{{ analysis.skills_count }} skills</strong>
+        </div>
+        <div class="stat-item">
+            <span>Listed Projects</span>
+            <strong>{{ analysis.projects_count }} projects</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Breakdown Grid -->
+<div class="charts-grid mt-4">
+    <div class="card chart-card">
+        <h4>Skill Category Breakdown</h4>
+        <div class="chart-box">
+            <canvas id="skillsCategoryChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card chart-card">
+        <h4>Resume Section Completeness</h4>
+        <div class="chart-box">
+            <canvas id="completenessBarChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Feedback Sections -->
+<div class="details-grid mt-4">
+    <!-- Strengths & Weaknesses -->
+    <div class="card">
+        <h3>✓ Strengths & Gaps</h3>
+        <div class="feedback-block">
+            <h4 class="text-success">Strengths</h4>
+            <ul class="badge-list positive-list">
+                {% for item in ats_report.get('strengths', []) %}
+                    <li>{{ item }}</li>
+                {% else %}
+                    <li>No specific strengths recorded.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="feedback-block mt-3">
+            <h4 class="text-danger">Weaknesses & Missing Sections</h4>
+            <ul class="badge-list negative-list">
+                {% for item in ats_report.get('weaknesses', []) %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+                {% for sec in ats_report.get('missing_sections', []) %}
+                    <li class="missing-sec">Missing Section: {{ sec }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Matching & Missing Skills -->
+    <div class="card">
+        <h3>🎯 Skill Alignment Analysis</h3>
+        {% if job_match_report %}
+        <div class="feedback-block">
+            <h4 class="text-primary">Matching Skills</h4>
+            <div class="pills-flex">
+                {% for skill in job_match_report.get('matching_skills', []) %}
+                    <span class="pill pill-success">{{ skill }}</span>
+                {% else %}
+                    <span class="text-muted">None detected</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="feedback-block mt-3">
+            <h4 class="text-warning">Missing Skills for Role</h4>
+            <div class="pills-flex">
+                {% for skill in job_match_report.get('missing_skills', []) %}
+                    <span class="pill pill-warning">{{ skill }}</span>
+                {% else %}
+                    <span class="text-muted">None</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <p class="text-muted">Upload a job description to perform skill gap matching.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Actionable Improvement Checklist -->
+<div class="card mt-4">
+    <h3>📋 Actionable Improvement Checklist</h3>
+    <div class="checklist-container">
+        <div class="checklist-section">
+            <h4 class="priority-high">High Priority Improvements</h4>
+            <ul class="checklist-items">
+                {% for item in improvement_report.get('high_priority_improvements', []) %}
+                <li class="check-item priority-high-border">
+                    <span class="status-indicator">⚡</span>
+                    <div class="check-body">
+                        <h5>{{ item }}</h5>
+                    </div>
+                </li>
+                {% else %}
+                <li class="text-muted">No high priority issues found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="checklist-section mt-3">
+            <h4 class="priority-med">Medium / Formatting Improvements</h4>
+            <ul class="checklist-items">
+                {% for item in improvement_report.get('medium_priority_improvements', []) %}
+                <li class="check-item priority-med-border">
+                    <span class="status-indicator">⚠️</span>
+                    <div class="check-body">
+                        <h5>{{ item }}</h5>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.ANALYSIS_DATA = {
+        ats_score: {{ analysis.ats_score }},
+        match_score: {{ analysis.job_match_score if analysis.job_match_score else 'null' }},
+        skills_count: {{ analysis.skills_count }},
+        projects_count: {{ analysis.projects_count }},
+        skills_data: {{ extracted_resume.get('skills', []) | tojson }},
+        ats_report: {{ ats_report | tojson }}
+    };
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/results.js"></script>
+{% endblock %}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ResumeAI - Intelligent Resume Analyzer & ATS Optimizer{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Base Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css?v=2.2">
+    {% block extra_css %}{% endblock %}
+    <!-- Chart.js CDN for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="/dashboard" class="sidebar-brand">
+                    <div class="brand-logo-badge">
+                        <svg class="brand-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <div class="brand-text-group">
+                        <span class="brand-title">Resume<span class="brand-highlight">AI</span></span>
+                        <span class="brand-tag">AGENT PLATFORM</span>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">NAVIGATION</div>
+
+                <a href="/dashboard" class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+                    <span class="nav-icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="9"></rect>
+                            <rect x="14" y="3" width="7" height="5"></rect>
+                            <rect x="14" y="12" width="7" height="9"></rect>
+                            <rect x="3" y="16" width="7" height="5"></rect>
+                        </svg>
+                    </span>
+                    <span class="nav-label">Dashboard</span>
+                    {% if active_page == 'dashboard' %}<span class="active-indicator"></span>{% endif %}
+                </a>
+
+                <a href="/upload" class="nav-item {% if active_page == 'upload' %}active{% endif %}">
+                    <span class="nav-icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </span>
+                    <span class="nav-label">Upload &amp; Analyze</span>
+                    {% if active_page == 'upload' %}<span class="active-indicator"></span>{% endif %}
+                </a>
+
+                <a href="/history" class="nav-item {% if active_page == 'history' %}active{% endif %}">
+                    <span class="nav-icon-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </span>
+                    <span class="nav-label">Analysis History</span>
+                    {% if active_page == 'history' %}<span class="active-indicator"></span>{% endif %}
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="ai-status-card">
+                    <div class="ai-status-header">
+                        <span class="status-pulse-dot"></span>
+                        <span class="status-state">AI ENGINE ACTIVE</span>
+                    </div>
+                    <div class="ai-model-name">Gemini 3.5 Flash</div>
+                    <div class="ai-model-sub">Multi-Agent Pipeline v2.0</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-wrapper">
+            <!-- Mobile Navigation Bar -->
+            <div class="mobile-top-bar">
+                <button class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle navigation">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="mobile-brand">Resume<span class="brand-highlight">AI</span></div>
+                <a href="/upload" class="mobile-action-btn">+ New</a>
+            </div>
+
+            <!-- Page Top Header -->
+            <header class="top-header">
+                <div class="page-title-box">
+                    <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p>{% block page_subtitle %}AI-Powered Resume Optimization &amp; ATS Insights{% endblock %}</p>
+                </div>
+                <div class="header-actions">
+                    {% block header_actions %}
+                    <a href="/upload" class="btn primary-btn">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>New Analysis</span>
+                    </a>
+                    {% endblock %}
+                </div>
+            </header>
+
+            <main class="page-content">
+                {% block content %}{% endblock %}
+            </main>
+
+            <footer class="footer">
+                <div class="footer-content">
+                    <p>Resume Analyzer AI Agent &copy; Powered by <strong>FastAPI</strong>, <strong>PostgreSQL</strong> &amp; <strong>Google Gemini</strong></p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Mobile Drawer Overlay -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <script src="/static/js/main.js?v=2.2"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

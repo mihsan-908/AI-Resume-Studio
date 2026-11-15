@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Resume Builder &amp; Comparison #{{ analysis.id }} - ResumeAI{% endblock %}
+{% block page_title %}AI Resume Builder &amp; Comparison{% endblock %}
+{% block page_subtitle %}Compare original resume against AI-rewritten sections, make live adjustments, and export{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/resume_builder.css?v=2.2">
+{% endblock %}
+
+{% block content %}
+<!-- Builder Header Actions -->
+<div class="builder-actions-header">
+    <div class="builder-info">
+        <div class="builder-badge-group">
+            <span class="file-badge">📄 {{ analysis.resume.original_filename }}</span>
+            <span class="version-badge">Revision v{{ analysis.rewritten_resumes[0].version if analysis.rewritten_resumes else 1 }}</span>
+        </div>
+    </div>
+
+    <div class="builder-btn-group">
+        <button onclick="saveResumeEdits()" id="saveBtn" class="btn primary-btn">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>Save Changes</span>
+        </button>
+
+        <div class="dropdown">
+            <button class="btn btn-secondary">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>Export Resume</span>
+            </button>
+            <div class="dropdown-content">
+                <a href="/api/analyses/{{ analysis.id }}/export/pdf" target="_blank">PDF Document (.pdf)</a>
+                <a href="/api/analyses/{{ analysis.id }}/export/docx" target="_blank">Word Document (.docx)</a>
+                <a href="/api/analyses/{{ analysis.id }}/export/md" target="_blank">Markdown (.md)</a>
+                <a href="/api/analyses/{{ analysis.id }}/export/txt" target="_blank">Plain Text (.txt)</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert feedback banner -->
+<div id="builderAlert" class="alert alert-success" style="display: none;"></div>
+
+<!-- Split Screen Layout -->
+<div class="split-editor-container">
+    <!-- Left Pane: Original Resume Extracted Data -->
+    <div class="card editor-pane original-pane">
+        <div class="pane-header">
+            <div class="pane-title-group">
+                <h4>Original Resume Content</h4>
+                <p>Extracted factual details</p>
+            </div>
+            <span class="pane-tag">READ ONLY</span>
+        </div>
+
+        <div class="pane-body">
+            <div class="original-section">
+                <h5>Candidate Information</h5>
+                <div class="info-row">
+                    <span class="info-label">Name:</span>
+                    <span class="info-value">{{ extracted_data.get('name', 'N/A') }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{ extracted_data.get('email', 'N/A') }}</span>
+                </div>
+            </div>
+
+            <div class="original-section">
+                <h5>Original Summary</h5>
+                <div class="summary-text-box">{{ extracted_data.get('professional_summary', 'No summary present.') }}</div>
+            </div>
+
+            <div class="original-section">
+                <h5>Extracted Skills</h5>
+                <div class="pills-flex">
+                    {% for skill in extracted_data.get('skills', []) %}
+                        <span class="pill pill-neutral">{{ skill }}</span>
+                    {% else %}
+                        <span class="text-muted">None detected</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="original-section">
+                <h5>Original Projects</h5>
+                {% for proj in extracted_data.get('projects', []) %}
+                <div class="item-block">
+                    <h6>{{ proj.get('title', 'Project') }}</h6>
+                    <p>{{ proj.get('description', '') }}</p>
+                </div>
+                {% else %}
+                <p class="text-muted">No projects listed.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Pane: AI Rewritten Editable Sections -->
+    <div class="card editor-pane rewritten-pane">
+        <div class="pane-header">
+            <div class="pane-title-group">
+                <h4>AI-Rewritten Resume</h4>
+                <p>Edit directly to customize exported document</p>
+            </div>
+            <span class="pane-tag edit-tag">INTERACTIVE</span>
+        </div>
+
+        <form id="resumeEditForm" class="pane-body">
+            <!-- Professional Summary -->
+            <div class="edit-section">
+                <label for="editSummary">Professional Summary</label>
+                <textarea id="editSummary" rows="4">{{ rewritten_content.get('professional_summary', '') }}</textarea>
+            </div>
+
+            <!-- Categorized Skills -->
+            <div class="edit-section">
+                <label>Categorized Skills (Comma-separated)</label>
+                {% set skills_dict = rewritten_content.get('skills', {}) %}
+                <div class="skills-edit-grid">
+                    <div class="skill-field">
+                        <span>Programming Languages</span>
+                        <input type="text" id="skill_Programming_Languages" value="{{ skills_dict.get('Programming Languages', []) | join(', ') }}">
+                    </div>
+                    <div class="skill-field">
+                        <span>AI &amp; Machine Learning</span>
+                        <input type="text" id="skill_AI_ML" value="{{ skills_dict.get('AI & Machine Learning', []) | join(', ') }}">
+                    </div>
+                    <div class="skill-field">
+                        <span>Frameworks</span>
+                        <input type="text" id="skill_Frameworks" value="{{ skills_dict.get('Frameworks', []) | join(', ') }}">
+                    </div>
+                    <div class="skill-field">
+                        <span>Databases</span>
+                        <input type="text" id="skill_Databases" value="{{ skills_dict.get('Databases', []) | join(', ') }}">
+                    </div>
+                    <div class="skill-field">
+                        <span>Tools &amp; Platforms</span>
+                        <input type="text" id="skill_Tools" value="{{ skills_dict.get('Tools & Platforms', []) | join(', ') }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rewritten Projects -->
+            <div class="edit-section">
+                <label>Projects &amp; Accomplishments</label>
+                <div id="projectsEditContainer">
+                    {% for proj in rewritten_content.get('projects', []) %}
+                    <div class="project-edit-card" data-project-idx="{{ loop.index0 }}">
+                        <input type="text" class="proj-title-input" value="{{ proj.get('title', '') }}" placeholder="Project Title">
+                        <textarea class="proj-bullets-input" rows="4" placeholder="Bullet points (one per line)">{{ proj.get('rewritten_description', []) | join('\n') }}</textarea>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Final Resume Tips -->
+            <div class="edit-section">
+                <label for="editTips">AI Optimization Tips (One per line)</label>
+                <textarea id="editTips" rows="3">{{ rewritten_content.get('final_resume_tips', []) | join('\n') }}</textarea>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    window.ANALYSIS_ID = {{ analysis.id }};
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/resume_builder.js?v=2.2"></script>
+{% endblock %}

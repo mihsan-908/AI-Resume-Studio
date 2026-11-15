@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Upload &amp; Analyze Resume - ResumeAI{% endblock %}
+{% block page_title %}Upload &amp; Analyze Resume{% endblock %}
+{% block page_subtitle %}Submit your PDF resume and target job description for instant multi-agent evaluation{% endblock %}
+
+{% block header_actions %}
+<div class="upload-header-badges">
+    <span class="badge-feature">
+        <span class="dot-live"></span> 7 Autonomous Agents Active
+    </span>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="/static/css/upload.css?v=2.2">
+{% endblock %}
+
+{% block content %}
+<div class="upload-wrapper">
+    <div class="card upload-card">
+        <form id="uploadForm" onsubmit="submitAnalysis(event)">
+            <!-- Step 1: File Upload Dropzone -->
+            <div class="form-step-section">
+                <div class="step-header">
+                    <span class="step-number">1</span>
+                    <div>
+                        <label class="step-title">Upload Resume PDF <span class="required-mark">*</span></label>
+                        <p class="step-desc">Upload your latest resume in PDF or TXT format (up to 10MB)</p>
+                    </div>
+                </div>
+
+                <div class="dropzone-container" id="dropzone" onclick="document.getElementById('resumeFileInput').click()">
+                    <input type="file" id="resumeFileInput" accept=".pdf,.txt" style="display: none;" onchange="handleFileSelected(event)" required>
+                    <div class="dropzone-inner" id="dropzonePrompt">
+                        <div class="upload-cloud-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <h4 class="dropzone-main-text">Drag and drop your PDF resume here</h4>
+                        <p class="dropzone-sub-text">or <span class="browse-highlight">browse files from your device</span></p>
+                        <div class="format-tags">
+                            <span class="format-pill">PDF (.pdf)</span>
+                            <span class="format-pill">Plain Text (.txt)</span>
+                            <span class="format-pill">Max 10 MB</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="fileSelectedBadge" class="selected-file-chip" style="display: none;"></div>
+            </div>
+
+            <!-- Step 2: Optional Job Description -->
+            <div class="form-step-section">
+                <div class="step-header">
+                    <span class="step-number">2</span>
+                    <div>
+                        <label class="step-title" for="jobDescInput">Target Job Description <span class="optional-tag">Optional but Recommended</span></label>
+                        <p class="step-desc">Paste the job requirements, qualifications, and role description to compute exact match percentage</p>
+                    </div>
+                </div>
+
+                <div class="textarea-wrapper">
+                    <textarea id="jobDescInput" rows="7" placeholder="Paste the job description or role requirements here (e.g. Senior Backend Engineer with Python, FastAPI, Docker, and PostgreSQL)..."></textarea>
+                </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="uploadError" class="alert alert-danger" style="display: none;"></div>
+
+            <!-- Submit Action -->
+            <div class="upload-form-actions">
+                <button type="submit" id="analyzeBtn" class="btn primary-btn submit-analysis-btn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
+                        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
+                        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
+                        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
+                    </svg>
+                    <span id="btnLabel">Run Multi-Agent Analysis</span>
+                    <span id="btnSpinner" class="spinner" style="display: none;"></span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Pipeline Feature Highlights -->
+        <div class="pipeline-highlights-grid">
+            <div class="highlight-item">
+                <span class="highlight-icon">🎯</span>
+                <div>
+                    <strong>ATS Compliance Check</strong>
+                    <p>Scored against standard applicant tracking filters</p>
+                </div>
+            </div>
+            <div class="highlight-item">
+                <span class="highlight-icon">⚡</span>
+                <div>
+                    <strong>Skill Gap Matching</strong>
+                    <p>Identifies exact missing technologies and competencies</p>
+                </div>
+            </div>
+            <div class="highlight-item">
+                <span class="highlight-icon">✨</span>
+                <div>
+                    <strong>Automated AI Rewriting</strong>
+                    <p>Generates ATS-optimized bullet points &amp; summaries</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Overlay Modal -->
+    <div id="processingModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content processing-modal-card text-center">
+            <div class="loader-ring"></div>
+            <h3 id="stepStatusTitle">Analyzing Resume...</h3>
+            <p id="stepStatusSub" class="text-muted">Executing 7 AI Agent pipeline steps: PDF extraction, ATS evaluation, job matching, and AI rewriting.</p>
+            <div class="progress-bar-track mt-4">
+                <div id="progressBarFill" class="progress-bar-fill" style="width: 25%;"></div>
+            </div>
+            <div class="pipeline-running-badge">Autonomous Agent Orchestration in Progress</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/upload.js?v=2.2"></script>
+{% endblock %}
